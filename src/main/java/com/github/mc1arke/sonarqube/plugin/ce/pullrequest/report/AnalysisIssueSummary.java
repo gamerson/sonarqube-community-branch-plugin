@@ -39,6 +39,7 @@ public final class AnalysisIssueSummary {
     private final String message;
     private final String severity;
     private final String resolution;
+    private final boolean useImages;
 
     private AnalysisIssueSummary(Builder builder) {
         this.typeImageUrl = builder.typeImageUrl;
@@ -51,6 +52,7 @@ public final class AnalysisIssueSummary {
         this.message = builder.message;
         this.severity = builder.severity;
         this.resolution = builder.resolution;
+        this.useImages = builder.useImages;
     }
 
     public String getTypeImageUrl() {
@@ -93,6 +95,10 @@ public final class AnalysisIssueSummary {
         return resolution;
     }
 
+    public boolean useImages() {
+        return useImages;
+    }
+
     public String format(FormatterFactory formatterFactory) {
         Long effort = getEffortInMinutes();
         Node effortNode = (null == effort ? new Text("") : new Paragraph(new Text(String.format("**Duration (min):** %s", effort))));
@@ -100,8 +106,8 @@ public final class AnalysisIssueSummary {
         Node resolutionNode = (StringUtils.isBlank(getResolution()) ? new Text("") : new Paragraph(new Text(String.format("**Resolution:** %s", getResolution()))));
 
         Document document = new Document(
-                new Paragraph(new Text(String.format("**Type:** %s ", getType())), new Image(getType(), getTypeImageUrl())),
-                new Paragraph(new Text(String.format("**Severity:** %s ", getSeverity())), new Image(getSeverity(), getSeverityImageUrl())),
+                new Paragraph(new Text(String.format("**Type:** %s ", getType())), getTypeIcon()),
+                new Paragraph(new Text(String.format("**Severity:** %s ", getSeverity())), getSeverityIcon()),
                 new Paragraph(new Text(String.format("**Message:** %s", getMessage()))),
                 effortNode,
                 resolutionNode,
@@ -110,6 +116,35 @@ public final class AnalysisIssueSummary {
         );
 
         return formatterFactory.documentFormatter().format(document);
+    }
+
+    private Node getTypeIcon() {
+        return useImages ? new Image(getType(), getTypeImageUrl()) :  new Text(toEmoji("U+1FAB3") + "Bug");
+    }
+
+    private Node getSeverityIcon() {
+        if (useImages) {
+            return new Image(getSeverity(), getSeverityImageUrl());
+        }
+
+        if ("blocker".equals(getSeverity())) {
+            return new Text(toEmoji("U+1F6AB") + "Blocker");
+        }
+        else if ("critical".equals(getSeverity())) {
+            return new Text(toEmoji("U+2757") + "Critical");
+        }
+        else if ("major".equals(getSeverity())) {
+            return new Text(toEmoji("U+26A0") + "Major");
+        }
+        else if ("minor".equals(getSeverity())) {
+            return new Text(toEmoji("U+2754") + "Minor");
+        }
+
+        return new Text(toEmoji("U+2139") + "Info");
+    }
+
+    private String toEmoji(String codepoint) {
+        return new String(Character.toChars(Integer.parseInt(codepoint.substring(2), 16)));
     }
 
     public static Builder builder() {
@@ -128,6 +163,7 @@ public final class AnalysisIssueSummary {
         private String message;
         private String severity;
         private String resolution;
+        private boolean useImages = true; // default to true
 
         private Builder() {
             super();
@@ -180,6 +216,11 @@ public final class AnalysisIssueSummary {
 
         public Builder withResolution(String resolution) {
             this.resolution = resolution;
+            return this;
+        }
+
+        public Builder withUseImages(boolean useImages) {
+            this.useImages = useImages;
             return this;
         }
 

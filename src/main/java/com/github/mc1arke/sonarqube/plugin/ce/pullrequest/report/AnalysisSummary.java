@@ -24,6 +24,7 @@ import com.github.mc1arke.sonarqube.plugin.ce.pullrequest.markup.Heading;
 import com.github.mc1arke.sonarqube.plugin.ce.pullrequest.markup.Image;
 import com.github.mc1arke.sonarqube.plugin.ce.pullrequest.markup.Link;
 import com.github.mc1arke.sonarqube.plugin.ce.pullrequest.markup.ListItem;
+import com.github.mc1arke.sonarqube.plugin.ce.pullrequest.markup.Node;
 import com.github.mc1arke.sonarqube.plugin.ce.pullrequest.markup.Paragraph;
 import com.github.mc1arke.sonarqube.plugin.ce.pullrequest.markup.Text;
 
@@ -34,6 +35,8 @@ import java.text.NumberFormat;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+
+import org.tmatesoft.sqljet.core.internal.lang.SqlParser.id_column_def_return;
 
 public final class AnalysisSummary {
 
@@ -65,6 +68,8 @@ public final class AnalysisSummary {
     private final long codeSmellCount;
     private final String codeSmellImageUrl;
 
+    private final boolean useImages;
+
     private AnalysisSummary(Builder builder) {
         this.summaryImageUrl = builder.summaryImageUrl;
         this.projectKey = builder.projectKey;
@@ -86,6 +91,7 @@ public final class AnalysisSummary {
         this.vulnerabilityImageUrl = builder.vulnerabilityImageUrl;
         this.codeSmellCount = builder.codeSmellCount;
         this.codeSmellImageUrl = builder.codeSmellImageUrl;
+        this.useImages = builder.useImages;
     }
 
     public String getSummaryImageUrl() {
@@ -173,7 +179,7 @@ public final class AnalysisSummary {
 
         List<String> failedConditions = getFailedQualityGateConditions();
 
-        Document document = new Document(new Paragraph(new Image(getStatusDescription(), getStatusImageUrl())),
+        Document document = new Document(new Paragraph(getStatusIcon()),
                 failedConditions.isEmpty() ? new Text("") :
                         new com.github.mc1arke.sonarqube.plugin.ce.pullrequest.markup.List(
                                 com.github.mc1arke.sonarqube.plugin.ce.pullrequest.markup.List.Style.BULLET,
@@ -185,26 +191,26 @@ public final class AnalysisSummary {
                 new Heading(2, new Text(pluralOf(getTotalIssueCount(), "Issue", "Issues"))),
                 new com.github.mc1arke.sonarqube.plugin.ce.pullrequest.markup.List(
                         com.github.mc1arke.sonarqube.plugin.ce.pullrequest.markup.List.Style.BULLET,
-                        new ListItem(new Image("Bug", getBugImageUrl()),
+                        new ListItem(getBugIcon(),
                                 new Text(" "),
                                 new Text(pluralOf(getBugCount(), "Bug", "Bugs"))),
-                        new ListItem(new Image("Vulnerability", getVulnerabilityImageUrl()),
+                        new ListItem(getVulnerabilityIcon(),
                                 new Text(" "),
                                 new Text(pluralOf(getVulnerabilityCount() + getSecurityHotspotCount(), "Vulnerability", "Vulnerabilities"))),
-                        new ListItem(new Image("Code Smell", getCodeSmellImageUrl()),
+                        new ListItem(getCodeSmellIcon(),
                                 new Text(" "),
                                 new Text(pluralOf(getCodeSmellCount(), "Code Smell", "Code Smells")))),
                 new Heading(2, new Text("Coverage and Duplications")),
                 new com.github.mc1arke.sonarqube.plugin.ce.pullrequest.markup.List(
                         com.github.mc1arke.sonarqube.plugin.ce.pullrequest.markup.List.Style.BULLET,
-                        new ListItem(new Image("Coverage", getCoverageImageUrl()),
+                        new ListItem(getCoverageIcon(),
                                 new Text(" "), new Text(
                                 Optional.ofNullable(getNewCoverage())
                                         .map(decimalFormat::format)
                                         .map(i -> i + "% Coverage")
                                         .orElse("No coverage information") + " (" +
                                         decimalFormat.format(Optional.ofNullable(getCoverage()).orElse(BigDecimal.valueOf(0))) + "% Estimated after merge)")),
-                        new ListItem(new Image("Duplications", getDuplicationsImageUrl()),
+                        new ListItem(getDuplicationsIcon(),
                                 new Text(" "),
                                 new Text(Optional.ofNullable(getNewDuplications())
                                         .map(decimalFormat::format)
@@ -214,6 +220,35 @@ public final class AnalysisSummary {
                 new Paragraph(new Link(getDashboardUrl(), new Text("View in SonarQube"))));
 
         return formatterFactory.documentFormatter().format(document);
+    }
+
+    private Node getBugIcon() {
+        return useImages ? new Image("Bug", getBugImageUrl()) :  new Text(toEmoji("U+1FAB3") + "Bug");
+    }
+
+    private Node getVulnerabilityIcon() {
+        return useImages ? new Image("Vulnerability", getVulnerabilityImageUrl()) : new Text(toEmoji("U+1F6E") + "Vulnerability");
+    }
+
+    private Node getCoverageIcon() {
+        return useImages ? new Image("Coverage", getCoverageImageUrl()) : new Text(toEmoji("U+1F4CA") + "Coverage");
+    }
+
+    private Node getDuplicationsIcon() {
+        return useImages ? new Image("Duplications", getDuplicationsImageUrl()) : new Text(toEmoji("U+00A9") + "Duplications");
+    }
+
+    private Node getStatusIcon() {
+        return useImages ? new Image(getStatusDescription(), getStatusImageUrl()) : new Text(toEmoji("U+26AA") + getStatusDescription());
+    }
+
+    private Node getCodeSmellIcon() {
+        return useImages ? new Image("Code Smell", getCodeSmellImageUrl()) : new Text(toEmoji("U+1F9A8") + "Code Smell");
+    }
+
+
+    private String toEmoji(String codepoint) {
+        return new String(Character.toChars(Integer.parseInt(codepoint.substring(2), 16)));
     }
 
     private static String pluralOf(long value, String singleLabel, String multiLabel) {
@@ -253,6 +288,8 @@ public final class AnalysisSummary {
 
         private long codeSmellCount;
         private String codeSmellImageUrl;
+
+        private boolean useImages = true; // default to true
 
         private Builder() {
             super();
@@ -355,6 +392,11 @@ public final class AnalysisSummary {
 
         public Builder withCodeSmellImageUrl(String codeSmellImageUrl) {
             this.codeSmellImageUrl = codeSmellImageUrl;
+            return this;
+        }
+
+        public Builder withUseImages(boolean useImages) {
+            this.useImages = useImages;
             return this;
         }
 

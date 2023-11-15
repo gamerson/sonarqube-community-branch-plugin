@@ -93,6 +93,7 @@ public class ReportGenerator {
                 .withSeverityImageUrl(String.format("%s/checks/Severity/%s.svg?sanitize=true", baseImageUrl, issue.severity().toLowerCase()))
                 .withType(issue.type().name())
                 .withTypeImageUrl(String.format("%s/checks/IssueType/%s.svg?sanitize=true", baseImageUrl, issue.type().name().toLowerCase()))
+                .withUseImages(getUseImages())
                 .build();
     }
 
@@ -151,6 +152,7 @@ public class ReportGenerator {
                 .withVulnerabilityCount(issueCounts.get(RuleType.VULNERABILITY))
                 .withSecurityHotspotCount(issueCounts.get(RuleType.SECURITY_HOTSPOT))
                 .withVulnerabilityImageUrl(baseImageUrl + "/common/vulnerability.svg?sanitize=true")
+                .withUseImages(getUseImages())
                 .build();
     }
 
@@ -160,6 +162,11 @@ public class ReportGenerator {
                 .replaceAll("/*$", "");
     }
 
+    private boolean getUseImages() {
+        boolean useEmojis = configuration.getBoolean(CommunityBranchPlugin.IMAGE_USE_EMOJIS).orElse(false);
+
+        return !useEmojis;
+    }
     private String getIssueUrl(PostAnalysisIssueVisitor.LightIssue issue, AnalysisDetails analysisDetails) {
         if (issue.type() == RuleType.SECURITY_HOTSPOT) {
             return String.format("%s/security_hotspots?id=%s&pullRequest=%s&hotspots=%s", server.getPublicRootUrl(), URLEncoder.encode(analysisDetails.getAnalysisProjectKey(), StandardCharsets.UTF_8), analysisDetails.getPullRequestId(), issue.key());
