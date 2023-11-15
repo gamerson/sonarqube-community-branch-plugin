@@ -119,7 +119,7 @@ public final class AnalysisIssueSummary {
     }
 
     private Node getTypeIcon() {
-        return useImages ? new Image(getType(), getTypeImageUrl()) :  new Text(toEmoji("U+1FAB3") + "Bug");
+        return useImages ? new Image(getType(), getTypeImageUrl()) :  new Text("\u26A0\uFE0F");
     }
 
     private Node getSeverityIcon() {
@@ -128,23 +128,19 @@ public final class AnalysisIssueSummary {
         }
 
         if ("blocker".equals(getSeverity())) {
-            return new Text(toEmoji("U+1F6AB") + "Blocker");
+            return new Text("\uD83D\uDEAB");
         }
         else if ("critical".equals(getSeverity())) {
-            return new Text(toEmoji("U+2757") + "Critical");
+            return new Text("\u2757");
         }
         else if ("major".equals(getSeverity())) {
-            return new Text(toEmoji("U+26A0") + "Major");
+            return new Text("\u26A0");
         }
         else if ("minor".equals(getSeverity())) {
-            return new Text(toEmoji("U+2754") + "Minor");
+            return new Text("\u2754");
         }
 
-        return new Text(toEmoji("U+2139") + "Info");
-    }
-
-    private String toEmoji(String codepoint) {
-        return new String(Character.toChars(Integer.parseInt(codepoint.substring(2), 16)));
+        return new Text("\u2139");
     }
 
     public static Builder builder() {

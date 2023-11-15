@@ -32,6 +32,7 @@ import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -223,32 +224,35 @@ public final class AnalysisSummary {
     }
 
     private Node getBugIcon() {
-        return useImages ? new Image("Bug", getBugImageUrl()) :  new Text(toEmoji("U+1FAB3") + "Bug");
+        return useImages ? new Image("Bug", getBugImageUrl()) :  new Text("\uD83E\uDEB3");
     }
 
     private Node getVulnerabilityIcon() {
-        return useImages ? new Image("Vulnerability", getVulnerabilityImageUrl()) : new Text(toEmoji("U+1F6E") + "Vulnerability");
+        return useImages ? new Image("Vulnerability", getVulnerabilityImageUrl()) : new Text("\uD83D\uDEE1");
     }
 
     private Node getCoverageIcon() {
-        return useImages ? new Image("Coverage", getCoverageImageUrl()) : new Text(toEmoji("U+1F4CA") + "Coverage");
+        return useImages ? new Image("Coverage", getCoverageImageUrl()) : new Text("\uD83D\uDCCA");
     }
 
     private Node getDuplicationsIcon() {
-        return useImages ? new Image("Duplications", getDuplicationsImageUrl()) : new Text(toEmoji("U+00A9") + "Duplications");
+        return useImages ? new Image("Duplications", getDuplicationsImageUrl()) : new Text("\uD83D\uDD00");
     }
 
     private Node getStatusIcon() {
-        return useImages ? new Image(getStatusDescription(), getStatusImageUrl()) : new Text(toEmoji("U+26AA") + getStatusDescription());
+        if (useImages) {
+            return new Image(getStatusDescription(), getStatusImageUrl());
+        }
+
+        if ("Failed".equals(getStatusDescription())) {
+            return new Text("\u2705");
+        }
+
+        return new Text("\u274C");
     }
 
     private Node getCodeSmellIcon() {
-        return useImages ? new Image("Code Smell", getCodeSmellImageUrl()) : new Text(toEmoji("U+1F9A8") + "Code Smell");
-    }
-
-
-    private String toEmoji(String codepoint) {
-        return new String(Character.toChars(Integer.parseInt(codepoint.substring(2), 16)));
+        return useImages ? new Image("Code Smell", getCodeSmellImageUrl()) : new Text("\uD83D\uDDA8");
     }
 
     private static String pluralOf(long value, String singleLabel, String multiLabel) {
