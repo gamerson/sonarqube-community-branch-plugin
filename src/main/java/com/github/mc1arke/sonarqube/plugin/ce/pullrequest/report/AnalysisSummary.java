@@ -245,14 +245,14 @@ public final class AnalysisSummary {
         }
 
         if ("Failed".equals(getStatusDescription())) {
-            return new Text("\u2705");
+            return new Text("\u274C" + getStatusDescription());
         }
 
-        return new Text("\u274C");
+        return new Text("\u2705" + getStatusDescription());
     }
 
     private Node getCodeSmellIcon() {
-        return useImages ? new Image("Code Smell", getCodeSmellImageUrl()) : new Text("\uD83D\uDDA8");
+        return useImages ? new Image("Code Smell", getCodeSmellImageUrl()) : new Text("\uD83E\uDDA8");
     }
 
     private static String pluralOf(long value, String singleLabel, String multiLabel) {
